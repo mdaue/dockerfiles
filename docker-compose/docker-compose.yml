@@ -1,0 +1,139 @@
+version: '2'
+
+services:
+  jenkins:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+    - /srv/jenkins:/var/jenkins_home,rw
+    image: jenkins
+
+  rethinkdb:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+    - /srv/rethinkdb:/data:rw
+    image: rethinkdb
+
+  shipyard:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    command: server
+    links:
+    - rethinkdb
+    image: shipyard/shipyard
+
+  postgres:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    environment:
+      POSTGRES_PASSWORD:
+      POSTGRES_USER: psql
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+     - /srv/postgres/data:/var/lib/postgresql/data/pgdata:rw
+     - /srv/postgres/logs:/var/log:rw
+    image: postgres:latest
+
+  mariadb:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_DATABASE: mythconverg
+      MYSQL_USER: mythtv
+      MYSQL_PASSWORD:
+    volumes:
+     - /srv/mariadb/data:/var/lib/mysql:rw
+    image: mariadb:latest
+
+  owncloud:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+    - /files/media:/media:rw
+    - /srv/owncloud/data:/var/www/html/data:rw
+    image: owncloud:8.1
+
+  asterisk:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+     - /srv/asterisk/etc:/etc/asterisk:rw
+    image: registry.:5000/asterisk
+
+  confluence:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+     - /srv/confluence/var:/var/atlassian/confluence:rw
+    image: registry.:5000/confluence
+
+  gitlab-ce:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+     - /srv/gitlab/etc:/etc/gitlab:rw
+     - /srv/gitlab/git:/git:rw
+     - /srv/gitlab/log:/var/log/gitlab:rw
+     - /srv/gitlab/var/opt/gitlab/.ssh:/var/opt/gitlab/.ssh:rw
+    image: gitlab/gitlab-ce
+    privileged: true
+
+  jupyter:
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+     - /srv/jupyter/data:/srv/jupyterhub/notebooks:rw
+     - /srv/jupyter/:/home/:rw
+    image: registry.:5000/jupyter
+
+  icescrum:
+    image: icescrum/icescrum
+    networks:
+      services:
+        ipv4_address:
+        ipv6_address:
+    volumes:
+    - /srv/icescrum:/root
+    environment:
+      ICESCRUM_HOST: goals.
+      ICESCRUM_PORT: 8080
+      ICESCRUM_CONTEXT: /
+    links:
+    - mariadb
+
+networks:
+  services:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+    ipam:
+      driver: default
+      config:
+      - subnet: 
+        gateway: 
+      - subnet: 
+        gateway: 
+
